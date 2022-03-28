@@ -1,38 +1,39 @@
-{"Pagamentos":[
+{
+  "Pagamentos": [
     {
-        "name":"CIMED",
-        "value": 3000,
-        "type":"boleto"
+      "name": "CIMED",
+      "value": 3000,
+      "type": "boleto"
     },
     {
-        "name":"EUROFARMA",
-        "value": 2000,
-        "type":"boleto"
+      "name": "EUROFARMA",
+      "value": 2000,
+      "type": "boleto"
     },
     {
-        "name":"MEDLEY",
-        "value": 6000,
-        "type":"boleto"
+      "name": "MEDLEY",
+      "value": 6000,
+      "type": "boleto"
     },
     {
-        "name":"EUROFARMA",
-        "value": 685,
-        "type":"PIX"
+      "name": "EUROFARMA",
+      "value": 685,
+      "type": "PIX"
     },
     {
-        "name":"FÁBIO PIEMONTE",
-        "value": 666,
-        "type":"TED"
+      "name": "FÁBIO PIEMONTE",
+      "value": 666,
+      "type": "TED"
     },
     {
-        "name":"LAULAU",
-        "value": 623782,
-        "type":"PIX"
+      "name": "LAULAU",
+      "value": 623782,
+      "type": "PIX"
     },
     {
-        "name":"SONOFARMA",
-        "value": 547.12,
-        "type":"boleto"
+      "name": "SONOFARMA",
+      "value": 547.12,
+      "type": "boleto"
     }
-]}
-
+  ]
+}
