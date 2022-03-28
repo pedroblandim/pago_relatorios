@@ -7,16 +7,16 @@ from urllib.request import urlopen
 import os
 import pathlib
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 
 app = Flask(__name__)
 
 SHEET_PATH = pathlib.Path().resolve()
 SHEET_NAME = "testeRelatorio.xlsx"
 
-@app.route("/")
+@app.post("/")
 def hello_world():
-    create_sheet()
+    create_sheet(request.json)
     return send_from_directory(SHEET_PATH, SHEET_NAME, as_attachment=True)
 
 def create_xlsx():
@@ -63,14 +63,7 @@ def soma_total(planilha, data):
     planilha.cell(row = starting_row + 1, column=2).value = soma_valor
     return planilha
 
-def create_sheet():
-    # url = "http://localhost:3000/Pagamentos"
-    # json_data = urlopen(url)
-    # data = json.loads(json_data.read())
-
-    with open('db.json', encoding="utf8") as fp:
-        data = json.load(fp)
-
+def create_sheet(data):
     workbook = create_xlsx()
     planilha = set_format_xlsx(workbook, 'Pagô')
 
