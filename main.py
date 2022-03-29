@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from openpyxl import Workbook
 from datetime import date
 from openpyxl.styles import Font, PatternFill
