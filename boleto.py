@@ -12,7 +12,7 @@ class BoletoFile():
     """Reads boleto from a PDF or image and then extract its number"""
     
     #                   xxxxx . xxxxx           xxxxx  . xxxxxx           xxxxx . xxxxx        xxxxxxxxx xxxxxxxxxxxxxx
-    NUMBER_PATTERN = '[0-9]{5}.[0-9]{5}[ ]{1,6}[0-9]{5}.[0-9]{6}[ ]{1,6}[0-9]{5}.[0-9]{6}[ ]{1,6}[0-9][ ]{1,6}[0-9]{14}'
+    NUMBER_PATTERN = '[0-9]{5}.[0-9]{5}[ .]{1,6}[0-9]{5}.[0-9]{6}[ .]{1,6}[0-9]{5}.[0-9]{6}[ .]{1,6}[0-9][ .]{1,6}[0-9]{14}'
     SIMPLIFIED_NUMBER_PATTERN = '[0-9]{47}'
 
     ALLOWED_EXTENSIONS = { 'pdf', 'jpeg', 'jpg', 'png', 'gif', 'bmp', 'tiff' }
@@ -20,21 +20,27 @@ class BoletoFile():
     def __init__(self, file):
         self.filename = secure_filename(file.filename)
 
+        number = ""
         if mimetypes.types_map['.pdf'] == file.mimetype:
             text = BoletoFile.__read_pdf_file(file)
+            number = BoletoFile.__extract_boleto_number(text)
         else:
-            text = BoletoFile.__read_image_file(file)
+            text = BoletoFile.__read_image_file(file, False)
+            number = BoletoFile.__extract_boleto_number(text)
 
-        self.number = BoletoFile.__extract_boleto_number(text)
-
+            if not number:
+                text = BoletoFile.__read_image_file(file, True)
+                number = BoletoFile.__extract_boleto_number(text)
+        
+        self.number = number
     @staticmethod
     def __read_pdf_file(file):
         raw = parser.from_buffer(file)
         return raw['content']
 
     @staticmethod
-    def __read_image_file(file):
-        return read_image(file)
+    def __read_image_file(file, treatImage):
+        return read_image(file, treatImage)
 
     @staticmethod
     def __extract_boleto_number(text):
