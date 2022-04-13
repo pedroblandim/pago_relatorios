@@ -2,16 +2,15 @@
 from flask import Flask, jsonify, send_from_directory, flash, request, redirect
 
 import mimetypes
-from BoletoFile import BoletoFile
+from boleto import BoletoFile
 # from werkzeug import secure_filename
 
-from PaymentSheet import PaymentSheet
+from paymentSheet import PaymentSheet
 import pathlib
 
 
 CURRENT_PATH = pathlib.Path().resolve()
 
-ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'png', 'gif', 'bmp', 'tiff'}
 UPLOAD_FOLDER = CURRENT_PATH
 
 SHEET_NAME = "Relatório de Pagamentos.xlsx"
@@ -31,17 +30,20 @@ def read_boletos_numbers():
     boletos_numbers = {}
     if request.method == 'POST':
         files = request.files.getlist('boletos')
+        
         for file in files:
-            if file.filename == '' or not allowed_file(file.filename):
+            if not BoletoFile.allowed_file(file.filename):
+                app.logger.warning('File with mimetype not allowed: ' + file.filename)
                 continue
 
             boleto = BoletoFile(file)
-            boletos_numbers[boleto.file_name] = boleto.number
-        
 
-        return jsonify(boletos_numbers)
+            if not boleto.number:
+                app.logger.warning('Could not read number from boleto: ' + file.filename)
 
+            boletos_numbers[boleto.filename] = {
+                'number': boleto.getFormattedNumber(),
+                'amount': boleto.getAmount()
+            }
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        return jsonify({ "boletos": boletos_numbers })
