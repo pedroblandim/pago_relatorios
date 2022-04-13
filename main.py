@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, jsonify, send_from_directory, flash, request, redirect
+from flask import Flask, jsonify, send_from_directory, request
 
-import mimetypes
 from boleto import BoletoFile
 # from werkzeug import secure_filename
 
-from paymentSheet import PaymentSheet
+from paymentsSheet import PaymentSheet
 import pathlib
 
 
