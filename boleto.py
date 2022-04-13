@@ -1,12 +1,9 @@
-import locale
 import mimetypes
 import re
 from tika import parser
 from werkzeug.utils import secure_filename
 
 from ocr import read_image
-
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 class BoletoFile():
     """Reads boleto from a PDF or image and then extract its number"""
@@ -32,7 +29,9 @@ class BoletoFile():
                 text = BoletoFile.__read_image_file(file, True)
                 number = BoletoFile.__extract_boleto_number(text)
         
-        self.number = number
+        if BoletoFile.__validate_number(number):
+            self.number = number
+        
     @staticmethod
     def __read_pdf_file(file):
         raw = parser.from_buffer(file)
@@ -78,5 +77,12 @@ class BoletoFile():
         if not self.number:
             return ''
 
-        return locale.currency(int(self.number[-10:]) / 100)
+        return BoletoFile.__toCurrency(int(self.number[-10:]) / 100)
+    
+    @staticmethod
+    def __toCurrency(number):
+        a = '{:,.2f}'.format(float(number))
+        b = a.replace(',','v')
+        c = b.replace('.',',')
+        return "R$ " + c.replace('v','.')
         
