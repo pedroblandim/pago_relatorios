@@ -1,9 +1,16 @@
+import logging
 import mimetypes
+import os
+import pathlib
 import re
-from tika import parser
+import fitz
 from werkzeug.utils import secure_filename
 
 from ocr import read_image
+
+log = logging.getLogger('boleto')
+
+TEMP_FOLDER = os.path.join(pathlib.Path().resolve(), "temp")
 
 class BoletoFile():
     """Reads boleto from a PDF or image and then extract its number"""
@@ -21,6 +28,7 @@ class BoletoFile():
         if mimetypes.types_map['.pdf'] == file.mimetype:
             text = BoletoFile.__read_pdf_file(file)
             number = BoletoFile.__extract_boleto_number(text)
+            
         else:
             text = BoletoFile.__read_image_file(file, False)
             number = BoletoFile.__extract_boleto_number(text)
@@ -31,11 +39,27 @@ class BoletoFile():
         
         if BoletoFile.__validate_number(number):
             self.number = number
+        else:
+            self.number = ""
         
     @staticmethod
     def __read_pdf_file(file):
-        raw = parser.from_buffer(file)
-        return raw['content']
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(TEMP_FOLDER, filename)
+        
+        file.save(file_path)
+
+        with fitz.open(file_path) as doc:
+            text = ""
+            for page in doc:
+                text += page.get_text()
+
+        try:
+            os.remove(file_path)
+        except Exception as error:
+            log.error("Error removing boleto temp file", error)
+
+        return text
 
     @staticmethod
     def __read_image_file(file, treatImage):
