@@ -86,16 +86,6 @@ class BoletoFile():
         # TODO validate with modulo11
         return True
 
-
-# valid() {
-#     if (this.bankSlipNumber.length !== 47) return false;
-
-#     const barcodeDigits = this.barcode().split('');
-#     const checksum = barcodeDigits.splice(4, 1);
-
-#     return (modulo11(barcodeDigits).toString() === checksum.toString());
-#   }
-
     @staticmethod
     def allowed_file(filename):
         return '.' in filename and \

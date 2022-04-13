@@ -3,15 +3,12 @@ import logging
 from flask import Flask, jsonify, send_from_directory, request
 
 from boleto import BoletoFile
-# from werkzeug import secure_filename
 
 from paymentsSheet import PaymentSheet
 import pathlib
 
 
 CURRENT_PATH = pathlib.Path().resolve()
-
-UPLOAD_FOLDER = CURRENT_PATH
 
 SHEET_NAME = "Relatório de Pagamentos.xlsx"
 
