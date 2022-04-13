@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from flask import Flask, jsonify, send_from_directory, request
 
 from boleto import BoletoFile
@@ -46,3 +47,8 @@ def read_boletos_numbers():
             }
 
         return jsonify({ "boletos": boletos_numbers })
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.warn')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
