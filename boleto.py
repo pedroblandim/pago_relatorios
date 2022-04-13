@@ -55,6 +55,24 @@ class BoletoFile():
             return ""
 
     @staticmethod
+    def __validate_number(number):
+        if len(number) != 47:
+            return False
+        
+        # TODO validate with modulo11
+        return True
+
+
+# valid() {
+#     if (this.bankSlipNumber.length !== 47) return false;
+
+#     const barcodeDigits = this.barcode().split('');
+#     const checksum = barcodeDigits.splice(4, 1);
+
+#     return (modulo11(barcodeDigits).toString() === checksum.toString());
+#   }
+
+    @staticmethod
     def allowed_file(filename):
         return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in BoletoFile.ALLOWED_EXTENSIONS
