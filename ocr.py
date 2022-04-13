@@ -4,7 +4,6 @@ import cv2
 
 from PIL import Image
 
-ocr.pytesseract.tesseract_cmd = r"C:\Users\Pedro Blandim\tesseract\tesseract.exe"
 
 def read_image(file, treatImage):
 
@@ -46,6 +45,10 @@ def read_image(file, treatImage):
     # Then rectangular part is cropped and passed on
     # to pytesseract for extracting text from it
     # Extracted text is then written into the text file
+
+    # cv2.imshow("teste", thresh1)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     text = ""
     for cnt in contours:

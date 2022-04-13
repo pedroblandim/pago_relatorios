@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
 from flask import Flask, jsonify, send_from_directory, request
+import pytesseract as ocr
 
 from boleto import BoletoFile
 
 from paymentsSheet import PaymentSheet
 import pathlib
 
+
+if 'ON_HEROKU' not in os.environ:
+    ocr.pytesseract.tesseract_cmd = os.environ.get('PYTESSERACT_CMD_PATH') # not in Heroku's environment
 
 CURRENT_PATH = pathlib.Path().resolve()
 
