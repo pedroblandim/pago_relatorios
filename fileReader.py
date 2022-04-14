@@ -1,9 +1,18 @@
+import logging
 import pytesseract as ocr
 import numpy as np
 import cv2
+import fitz
+import os
+import pathlib
+from werkzeug.utils import secure_filename
+# from pdf2image import  
 
 from PIL import Image
 
+
+TEMP_FOLDER = os.path.join(pathlib.Path().resolve(), "temp")
+log = logging.getLogger('fileReader')
 
 def read_image(file, treatImage):
 
@@ -64,3 +73,24 @@ def read_image(file, treatImage):
         text += ocr.image_to_string(cropped, lang='por')
         
     return text
+
+def read_pdf_file(file):
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(TEMP_FOLDER, filename)
+    
+    file.save(file_path)
+
+    with fitz.open(file_path) as doc:
+        text = ""
+        for page in doc:
+            text += page.get_text()
+
+    try:
+        os.remove(file_path)
+    except Exception as error:
+        log.error("Error removing boleto temp file", error)
+
+    return text
+
+def pdf_to_image(file):
+    pass

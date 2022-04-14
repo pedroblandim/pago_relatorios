@@ -1,16 +1,9 @@
-import logging
 import mimetypes
-import os
-import pathlib
 import re
-import fitz
 from werkzeug.utils import secure_filename
 
-from ocr import read_image
+from fileReader import read_pdf_file, read_image, pdf_to_image
 
-log = logging.getLogger('boleto')
-
-TEMP_FOLDER = os.path.join(pathlib.Path().resolve(), "temp")
 
 class BoletoFile():
     """Reads boleto from a PDF or image and then extract its number"""
@@ -24,18 +17,7 @@ class BoletoFile():
     def __init__(self, file):
         self.filename = secure_filename(file.filename)
 
-        number = ""
-        if mimetypes.types_map['.pdf'] == file.mimetype:
-            text = BoletoFile.__read_pdf_file(file)
-            number = BoletoFile.__extract_boleto_number(text)
-            
-        else:
-            text = BoletoFile.__read_image_file(file, False)
-            number = BoletoFile.__extract_boleto_number(text)
-
-            if not number:
-                text = BoletoFile.__read_image_file(file, True)
-                number = BoletoFile.__extract_boleto_number(text)
+        number = BoletoFile.__read_boleto_file_number(file)
         
         if BoletoFile.__validate_number(number):
             self.number = number
@@ -43,27 +25,26 @@ class BoletoFile():
             self.number = ""
         
     @staticmethod
-    def __read_pdf_file(file):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(TEMP_FOLDER, filename)
+    def __read_boleto_file_number(file):
+        number = ""
+
+        if mimetypes.types_map['.pdf'] == file.mimetype:
+            text = read_pdf_file(file)
+            number = BoletoFile.__extract_boleto_number(text)
         
-        file.save(file_path)
+            if number:
+                return number
+            else:
+                file = pdf_to_image(file)
+            
+        text = read_image(file, False)
+        number = BoletoFile.__extract_boleto_number(text)
 
-        with fitz.open(file_path) as doc:
-            text = ""
-            for page in doc:
-                text += page.get_text()
-
-        try:
-            os.remove(file_path)
-        except Exception as error:
-            log.error("Error removing boleto temp file", error)
-
-        return text
-
-    @staticmethod
-    def __read_image_file(file, treatImage):
-        return read_image(file, treatImage)
+        if not number:
+            text = read_image(file, True)
+            number = BoletoFile.__extract_boleto_number(text)
+        
+        return number
 
     @staticmethod
     def __extract_boleto_number(text):
