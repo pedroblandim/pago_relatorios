@@ -5,6 +5,7 @@ from openpyxl.styles import Font, PatternFill
 
 import os
 
+
 class PaymentSheet:
     def __init__(self, request) -> None:
         data = request.json
@@ -38,7 +39,7 @@ class PaymentSheet:
         planilha['b3'] = 'VALOR'
         planilha['c3'] = 'TIPO'
         planilha['a3'].font = planilha['b3'].font = planilha['c3'].font = font_style
-        planilha['a3'].fill = planilha['b3'].fill =planilha['c3'].fill = fill_pattern
+        planilha['a3'].fill = planilha['b3'].fill = planilha['c3'].fill = fill_pattern
 
         return planilha
 
@@ -48,7 +49,7 @@ class PaymentSheet:
             planilha.cell(row=starting_row, column=1).value = item['name']
             planilha.cell(row=starting_row, column=2).value = item['value']
             planilha.cell(row=starting_row, column=3).value = item['type']
-            starting_row+=1
+            starting_row += 1
         return planilha
 
     def __soma_total(self, planilha):
@@ -57,6 +58,6 @@ class PaymentSheet:
         for item in self.payments:
             soma_valor += item['value']
             starting_row += 1
-        planilha.cell(row = starting_row + 1, column=1).value = 'Total'
-        planilha.cell(row = starting_row + 1, column=2).value = soma_valor
+        planilha.cell(row=starting_row + 1, column=1).value = 'Total'
+        planilha.cell(row=starting_row + 1, column=2).value = soma_valor
         return planilha
