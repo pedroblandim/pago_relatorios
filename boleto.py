@@ -2,7 +2,7 @@ import mimetypes
 import re
 from werkzeug.utils import secure_filename
 
-from fileReader import read_pdf_file, read_image, pdf_to_image
+from fileReader import read_pdf_file, read_image, pdf_to_temp_image, save_temp_file, remove_temp_file
 
 
 class BoletoFile():
@@ -28,23 +28,38 @@ class BoletoFile():
     def __read_boleto_file_number(file):
         number = ""
 
-        if mimetypes.types_map['.pdf'] == file.mimetype:
-            text = read_pdf_file(file)
+        filename = ""
+        try:
+            filename = save_temp_file(file)
+
+            if mimetypes.types_map['.pdf'] == file.mimetype:
+                text = read_pdf_file(filename)
+                number = BoletoFile.__extract_boleto_number(text)
+
+                if number:
+                    return number
+                else:
+                    image_filename = pdf_to_temp_image(file)
+
+                    remove_temp_file(filename)
+
+                    filename = image_filename
+
+                if not image_filename:
+                    return ""
+
+            text = read_image(filename, False)
+
             number = BoletoFile.__extract_boleto_number(text)
 
-            if number:
-                return number
-            else:
-                file = pdf_to_image(file)
+            if not number:
+                text = read_image(filename, True)
+                number = BoletoFile.__extract_boleto_number(text)
 
-        text = read_image(file, False)
-        number = BoletoFile.__extract_boleto_number(text)
-
-        if not number:
-            text = read_image(file, True)
-            number = BoletoFile.__extract_boleto_number(text)
-
-        return number
+            return number
+        finally:
+            if filename:
+                remove_temp_file(filename)
 
     @staticmethod
     def __extract_boleto_number(text):

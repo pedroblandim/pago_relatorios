@@ -1,3 +1,4 @@
+import io
 import logging
 import pytesseract as ocr
 import numpy as np
@@ -6,7 +7,6 @@ import fitz
 import os
 import pathlib
 from werkzeug.utils import secure_filename
-# from pdf2image import
 
 from PIL import Image
 
@@ -15,10 +15,12 @@ TEMP_FOLDER = os.path.join(pathlib.Path().resolve(), "temp")
 log = logging.getLogger('fileReader')
 
 
-def read_image(file, treatImage):
+def read_image(filename, treatImage):
+
+    file_path = __get_temp_file_path(filename)[0]
 
     # tipando a leitura para os canais de ordem RGB
-    image = Image.open(file).convert('RGB')
+    image = Image.open(file_path).convert('RGB')
 
     # convertendo em um array editável de numpy[x, y, CANALS]
     img = np.asarray(image).astype(np.uint8)
@@ -77,24 +79,61 @@ def read_image(file, treatImage):
     return text
 
 
-def read_pdf_file(file):
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(TEMP_FOLDER, filename)
-
-    file.save(file_path)
-
+def read_pdf_file(filename):
+    file_path = __get_temp_file_path(filename)[0]
     with fitz.open(file_path) as doc:
         text = ""
         for page in doc:
             text += page.get_text()
 
-    try:
-        os.remove(file_path)
-    except Exception as error:
-        log.error("Error removing boleto temp file", error)
-
     return text
 
 
-def pdf_to_image(file):
-    pass
+def pdf_to_temp_image(file):
+    file_path, filename = __get_temp_file_path(file.filename)
+
+    image_format = 'tiff'
+    image_filename = filename.split('.')[0] + '.' + image_format
+
+    zoom = 2  # to increase the resolution
+    mat = fitz.Matrix(zoom, zoom)
+    image_list = []
+    with fitz.open(file_path) as doc:
+        for page in doc:
+            pix = page.get_pixmap(matrix=mat)
+
+            image = Image.open(io.BytesIO(pix.pil_tobytes(image_format)))
+
+            image_list.append(image)
+
+        image_file_path = os.path.join(TEMP_FOLDER, image_filename)
+        if image_list:
+            image_list[0].save(
+                image_file_path,
+                save_all=True,
+                append_images=image_list[1:],
+                dpi=(300, 300),
+            )
+
+        return image_filename
+
+
+def save_temp_file(file):
+    file_path, filename = __get_temp_file_path(file.filename)
+
+    file.save(file_path)
+
+    return filename
+
+
+def remove_temp_file(filename):
+    file_path = __get_temp_file_path(filename)[0]
+    try:
+        os.remove(file_path)
+    except Exception as error:
+        log.error("Error removing boleto temp file: %s", error)
+
+
+def __get_temp_file_path(filename):
+    secure = secure_filename(filename)
+    return [os.path.join(TEMP_FOLDER, secure), secure]
