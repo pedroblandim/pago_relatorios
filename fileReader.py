@@ -17,7 +17,7 @@ log = logging.getLogger('fileReader')
 
 def read_image(filename, treatImage):
 
-    file_path = __get_temp_file_path(filename)[0]
+    file_path = get_temp_file_path(filename)[0]
 
     # tipando a leitura para os canais de ordem RGB
     image = Image.open(file_path).convert('RGB')
@@ -80,7 +80,7 @@ def read_image(filename, treatImage):
 
 
 def read_pdf_file(filename):
-    file_path = __get_temp_file_path(filename)[0]
+    file_path = get_temp_file_path(filename)[0]
     with fitz.open(file_path) as doc:
         text = ""
         for page in doc:
@@ -90,7 +90,7 @@ def read_pdf_file(filename):
 
 
 def pdf_to_temp_image(file):
-    file_path, filename = __get_temp_file_path(file.filename)
+    file_path, filename = get_temp_file_path(file.filename)
 
     image_format = 'tiff'
     image_filename = filename.split('.')[0] + '.' + image_format
@@ -119,21 +119,22 @@ def pdf_to_temp_image(file):
 
 
 def save_temp_file(file):
-    file_path, filename = __get_temp_file_path(file.filename)
+    file_path, filename = get_temp_file_path(file.filename)
 
-    file.save(file_path)
+    if not os.path.exists(file_path):
+        file.save(file_path)
 
     return filename
 
 
 def remove_temp_file(filename):
-    file_path = __get_temp_file_path(filename)[0]
+    file_path = get_temp_file_path(filename)[0]
     try:
         os.remove(file_path)
     except Exception as error:
         log.error("Error removing boleto temp file: %s", error)
 
 
-def __get_temp_file_path(filename):
+def get_temp_file_path(filename):
     secure = secure_filename(filename)
     return [os.path.join(TEMP_FOLDER, secure), secure]

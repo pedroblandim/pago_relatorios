@@ -1,13 +1,23 @@
 import logging
 import mimetypes
 import re
+from functools import reduce
 
-from fileReader import read_pdf_file, read_image, pdf_to_temp_image, save_temp_file, remove_temp_file
+from werkzeug.datastructures import FileStorage
+
+from PyPDF2 import PdfFileWriter, PdfFileReader
+
+from fileReader import get_temp_file_path, read_pdf_file, read_image, pdf_to_temp_image, save_temp_file, remove_temp_file
 
 log = logging.getLogger('boleto')
 
 
 def read_boletos(files):
+
+    files_split = [__split_pdf_file(file) for file in files]
+
+    # reduce list of lists to a list (same as flatmap)
+    files = reduce(list.__add__, files_split)
 
     boletos = []
 
@@ -26,6 +36,45 @@ def read_boletos(files):
         boletos.append(boleto)
 
     return boletos
+
+
+def __split_pdf_file(file):
+    # create one PDF per page
+
+    if not mimetypes.types_map['.pdf'] == file.mimetype:
+        return [file]
+
+    inputpdf = PdfFileReader(file.stream)
+
+    files = []
+
+    for i in range(inputpdf.numPages):
+        page_file_output = PdfFileWriter()
+        page_file_output.insertPage(inputpdf.getPage(i))
+
+        temp_file_path, temp_filename = get_temp_file_path(
+            str(i) + file.filename)
+
+        # write current page to temp file
+        with open(temp_file_path, "wb") as output_stream:
+            page_file_output.write(output_stream)
+
+        # instantiate FileStorage with current page temp file
+        with open(temp_file_path, "rb") as current_page_temp_output:
+            new_filename = file.filename.split(
+                '.', 1)[0] + ' Page ' + str(i + 1) + '.' + file.filename.split('.', 1)[1]
+            new_file_path, new_filename = get_temp_file_path(new_filename)
+
+            new_file = FileStorage(
+                current_page_temp_output, new_filename, None, file.content_type, file.content_length, file.headers)
+
+            new_file.save(new_file_path)
+            files.append(new_file)
+
+        # remove current page temp file
+        remove_temp_file(temp_filename)
+
+    return files
 
 
 class BoletoFile():
@@ -63,7 +112,7 @@ class BoletoFile():
                 if number:
                     return number
                 else:
-                    # transform PDF in image and replace current filename 
+                    # transform PDF in image and replace current filename
                     image_filename = pdf_to_temp_image(file)
 
                     remove_temp_file(filename)
