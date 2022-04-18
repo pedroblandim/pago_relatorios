@@ -1,26 +1,19 @@
 # pago_relatorios
+
 Automatizador de relatórios Pagô
 
 ## Iniciar aplicação
-### Instalar as dependências necessárias
-```
-pip install flask openpyxl
-```
 
-### Configurar variáveis de ambiente
+### Instalar as dependências
+```
+pip install -r requirements.txt
+```
+- pytesseract
+  - [Instalação](https://stackoverflow.com/questions/50655738/how-do-i-resolve-a-tesseractnotfounderror) (resposta do Ali). Obs: na instalação no windows, você deve configurar a variável **pytesseract.pytesseract.tesseract_cmd** na variável **PYTESSERACT_CMD_PATH** do arquivo _.env_ 
 
-Bash:
-```bash
-export FLASK_APP=hello
-export FLASK_ENV=development
-```
-Powershell:
-```powershell
-$env:FLASK_APP = "hello"
-$env:FLASK_ENV = "development"
-```
 
 ### Iniciar flask
+
 ```
 flask run
 ```
