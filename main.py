@@ -3,16 +3,15 @@ import logging
 import os
 from flask import Flask, jsonify, send_from_directory, request
 import pytesseract as ocr
-
-from boleto import BoletoFile
-
-from paymentsSheet import PaymentSheet
 import pathlib
 
+from paymentsSheet import PaymentSheet
+from boleto import read_boletos
 
-if 'ON_HEROKU' not in os.environ:
+
+if 'ON_HEROKU' not in os.environ and os.name == 'nt': # not in Heroku and OS is windows
     ocr.pytesseract.tesseract_cmd = os.environ.get(
-        'PYTESSERACT_CMD_PATH')  # not in Heroku's environment
+        'PYTESSERACT_CMD_PATH')
 
 CURRENT_PATH = pathlib.Path().resolve()
 
@@ -30,28 +29,20 @@ def create_payment_sheet():
 
 @app.route('/read-boletos-numbers', methods=['GET', 'POST'])
 def read_boletos_numbers():
-    boletos_numbers = {}
     if request.method == 'POST':
         files = request.files.getlist('boletos')
 
-        for file in files:
-            if not BoletoFile.allowed_file(file.filename):
-                app.logger.warning(
-                    'File with mimetype not allowed: ' + file.filename)
-                continue
+        boletos = read_boletos(files)
 
-            boleto = BoletoFile(file)
-
-            if not boleto.number:
-                app.logger.warning(
-                    'Could not read number from boleto: ' + file.filename)
-
-            boletos_numbers[boleto.filename] = {
+        boletos_json_list = [
+            {
+                "fileName": boleto.getFilename(),
                 'number': boleto.getFormattedNumber(),
                 'amount': boleto.getAmount()
             }
+            for boleto in boletos]
 
-        return jsonify({"boletos": boletos_numbers})
+        return jsonify({"boletos": boletos_json_list})
 
 
 if __name__ != '__main__':

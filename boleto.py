@@ -1,8 +1,31 @@
+import logging
 import mimetypes
 import re
-from werkzeug.utils import secure_filename
 
 from fileReader import read_pdf_file, read_image, pdf_to_temp_image, save_temp_file, remove_temp_file
+
+log = logging.getLogger('boleto')
+
+
+def read_boletos(files):
+
+    boletos = []
+
+    for file in files:
+        if not BoletoFile.allowed_file(file.filename):
+            log.warning(
+                'File with mimetype not allowed: ' + file.filename)
+            continue
+
+        boleto = BoletoFile(file)
+
+        if not boleto.number:
+            log.warning(
+                'Could not read number from boleto: ' + file.filename)
+
+        boletos.append(boleto)
+
+    return boletos
 
 
 class BoletoFile():
@@ -15,7 +38,7 @@ class BoletoFile():
     ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'jpg', 'png', 'gif', 'bmp', 'tiff'}
 
     def __init__(self, file):
-        self.filename = secure_filename(file.filename)
+        self.filename = file.filename
 
         number = BoletoFile.__read_boleto_file_number(file)
 
@@ -33,12 +56,14 @@ class BoletoFile():
             filename = save_temp_file(file)
 
             if mimetypes.types_map['.pdf'] == file.mimetype:
+                # try to read PDF file
                 text = read_pdf_file(filename)
                 number = BoletoFile.__extract_boleto_number(text)
 
                 if number:
                     return number
                 else:
+                    # transform PDF in image and replace current filename 
                     image_filename = pdf_to_temp_image(file)
 
                     remove_temp_file(filename)
@@ -48,6 +73,7 @@ class BoletoFile():
                 if not image_filename:
                     return ""
 
+            # read image with current filename
             text = read_image(filename, False)
 
             number = BoletoFile.__extract_boleto_number(text)
