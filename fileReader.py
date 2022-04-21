@@ -15,7 +15,7 @@ TEMP_FOLDER = os.path.join(pathlib.Path().resolve(), "temp")
 log = logging.getLogger('fileReader')
 
 
-def read_image(filename, treatImage):
+def read_image(filename, treat_image):
 
     file_path = get_temp_file_path(filename)[0]
 
@@ -25,7 +25,7 @@ def read_image(filename, treatImage):
     # convertendo em um array editável de numpy[x, y, CANALS]
     img = np.asarray(image).astype(np.uint8)
 
-    if not treatImage:
+    if not treat_image:
         return ocr.image_to_string(img)
 
     # Preprocessing the image starts
