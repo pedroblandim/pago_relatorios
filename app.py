@@ -61,7 +61,10 @@ def read_whatsapp_pix():
 
         whatsapp_pix_json_list = [
             {
-                "fileName": whatsapp_pix.getFilename(),
+                'fileName': whatsapp_pix.get_filename(),
+                'name': whatsapp_pix.get_name(),
+                'pix_key': whatsapp_pix.get_pix_key(),
+                'value': whatsapp_pix.get_value(),
             }
             for whatsapp_pix in whatsapp_pix_list]
 
