@@ -2,6 +2,7 @@
 import logging
 import os
 from flask import Flask, jsonify, send_from_directory, request
+from flask_cors import CORS
 import pytesseract as ocr
 import pathlib
 
@@ -19,7 +20,7 @@ CURRENT_PATH = pathlib.Path().resolve()
 SHEET_NAME = "Relatório de Pagamentos.xlsx"
 
 app = Flask(__name__)
-
+CORS(app)
 
 @app.post("/")
 def create_payment_sheet():
